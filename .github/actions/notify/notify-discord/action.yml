@@ -1,0 +1,24 @@
+name: Notify Discord
+
+inputs:
+  message:
+    required: true
+  title:
+    required: false
+    default: "CI Notification"
+  status:
+    required: false
+    default: "info"
+  environment:
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        curl -H "Content-Type: application/json" \
+             -X POST \
+             -d "{\"content\": \"**${{ inputs.title }}**\nEnvironment: \`${{ inputs.environment }}\`\nStatus: \`${{ inputs.status }}\`\n${{ inputs.message }}\"}" \
+             ${{ secrets.DISCORD_WEBHOOK_URL }}
+      shell: bash

@@ -1,0 +1,87 @@
+name: Notify
+
+on:
+  workflow_call:
+    inputs:
+      message:
+        required: true
+        type: string
+      title:
+        required: false
+        default: "CI Notification"
+        type: string
+      status:
+        required: false
+        default: "info"
+        type: string
+      environment:
+        required: false
+        default: ""
+        type: string
+
+      notify-slack:
+        required: false
+        default: "false"
+        type: string
+      notify-email:
+        required: false
+        default: "false"
+        type: string
+      notify-discord:
+        required: false
+        default: "false"
+        type: string
+      notify-ms-teams:
+        required: false
+        default: "false"
+        type: string
+      notify-pagerduty:
+        required: false
+        default: "false"
+        type: string
+
+jobs:
+  slack:
+    if: ${{ inputs.notify-slack == 'true' }}
+    uses: ./.github/actions/notify-slack
+    with:
+      message: ${{ inputs.message }}
+      title: ${{ inputs.title }}
+      status: ${{ inputs.status }}
+      environment: ${{ inputs.environment }}
+
+  email:
+    if: ${{ inputs.notify-email == 'true' }}
+    uses: ./.github/actions/notify-email
+    with:
+      message: ${{ inputs.message }}
+      title: ${{ inputs.title }}
+      status: ${{ inputs.status }}
+      environment: ${{ inputs.environment }}
+
+  discord:
+    if: ${{ inputs.notify-discord == 'true' }}
+    uses: ./.github/actions/notify-discord
+    with:
+      message: ${{ inputs.message }}
+      title: ${{ inputs.title }}
+      status: ${{ inputs.status }}
+      environment: ${{ inputs.environment }}
+
+  ms-teams:
+    if: ${{ inputs.notify-ms-teams == 'true' }}
+    uses: ./.github/actions/notify-ms-teams
+    with:
+      message: ${{ inputs.message }}
+      title: ${{ inputs.title }}
+      status: ${{ inputs.status }}
+      environment: ${{ inputs.environment }}
+
+  pagerduty:
+    if: ${{ inputs.notify-pagerduty == 'true' }}
+    uses: ./.github/actions/notify-pagerduty
+    with:
+      message: ${{ inputs.message }}
+      title: ${{ inputs.title }}
+      status: ${{ inputs.status }}
+      environment: ${{ inputs.environment }}

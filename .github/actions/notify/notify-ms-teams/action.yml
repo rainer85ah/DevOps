@@ -1,0 +1,34 @@
+name: Notify MS Teams
+
+inputs:
+  message:
+    required: true
+  title:
+    required: false
+    default: "CI Notification"
+  status:
+    required: false
+    default: "info"
+  environment:
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        curl -H "Content-Type: application/json" \
+             -X POST \
+             -d '{
+               "@type": "MessageCard",
+               "@context": "https://schema.org/extensions",
+               "summary": "${{ inputs.title }}",
+               "themeColor": "0076D7",
+               "title": "${{ inputs.title }}",
+               "sections": [{
+                 "activityTitle": "Environment: ${{ inputs.environment }}",
+                 "text": "${{ inputs.message }}\n\nStatus: `${{ inputs.status }}`"
+               }]
+             }' \
+             ${{ secrets.MS_TEAMS_WEBHOOK_URL }}
+      shell: bash

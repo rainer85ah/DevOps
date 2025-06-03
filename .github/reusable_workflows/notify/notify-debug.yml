@@ -1,0 +1,51 @@
+name: Notify Debug
+
+on:
+  workflow_dispatch:
+    inputs:
+      message:
+        description: 'Notification message'
+        required: true
+        default: 'This is a test notification from notify-debug.yml'
+      title:
+        description: 'Notification title'
+        required: false
+        default: 'Notify Debug Test'
+      status:
+        description: 'Status (info, warning, error)'
+        required: false
+        default: 'info'
+      environment:
+        description: 'Environment (dev, uat, stag, prod)'
+        required: false
+        default: 'dev'
+      notify-slack:
+        type: boolean
+        default: true
+      notify-email:
+        type: boolean
+        default: false
+      notify-discord:
+        type: boolean
+        default: false
+      notify-ms-teams:
+        type: boolean
+        default: false
+      notify-pagerduty:
+        type: boolean
+        default: false
+
+jobs:
+  notify:
+    uses: ./.github/workflows/notify.yml
+    with:
+      message: ${{ github.event.inputs.message }}
+      title: ${{ github.event.inputs.title }}
+      status: ${{ github.event.inputs.status }}
+      environment: ${{ github.event.inputs.environment }}
+
+      notify-slack: ${{ github.event.inputs.notify-slack }}
+      notify-email: ${{ github.event.inputs.notify-email }}
+      notify-discord: ${{ github.event.inputs.notify-discord }}
+      notify-ms-teams: ${{ github.event.inputs.notify-ms-teams }}
+      notify-pagerduty: ${{ github.event.inputs.notify-pagerduty }}

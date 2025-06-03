@@ -1,0 +1,31 @@
+name: Build Any App
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        required: false
+        default: "."
+        type: string
+      environment:
+        required: false
+        type: string
+        default: "dev"
+    outputs:
+      image-tag:
+        description: "Image tag used in the Docker build"
+        value: ${{ jobs.build.outputs.image-tag }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Docker Build Job
+    outputs:
+      image-tag: ${{ steps.build-image.outputs.image-tag }}
+    steps:
+      - name: Run Docker Build Action
+        id: build-image
+        uses: ./.github/actions/build  # This points to your composite action
+        with:
+          working-directory: ${{ inputs.working-directory }}
+          environment: ${{ inputs.environment }}

@@ -1,0 +1,37 @@
+name: Monitoring Delegator
+
+on:
+  workflow_call:
+    inputs:
+      monitoring-tool:
+        required: true
+        type: string
+      workflow-name:
+        required: true
+        type: string
+      job-status:
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
+      sentry-dsn:
+        required: false
+        type: string
+      datadog-api-key:
+        required: false
+        type: string
+      newrelic-api-key:
+        required: false
+        type: string
+
+jobs:
+  delegate-monitoring:
+    uses: ./.github/workflows/monitor/monitor-${{ inputs.monitoring-tool }}.yml
+    with:
+      workflow-name: ${{ inputs.workflow-name }}
+      job-status: ${{ inputs.job-status }}
+      environment: ${{ inputs.environment }}
+      sentry-dsn: ${{ inputs.sentry-dsn }}
+      datadog-api-key: ${{ inputs.datadog-api-key }}
+      newrelic-api-key: ${{ inputs.newrelic-api-key }}

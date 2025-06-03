@@ -1,0 +1,22 @@
+name: Lint Node.js
+
+inputs:
+  working-directory:
+    required: false
+    default: "."
+    type: string
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/setup-node@v4
+
+    - run: |
+        npm ci
+        if [ -f .eslintrc.js ] || [ -f .eslintrc.json ]; then
+          npx eslint .
+        else
+          echo "No ESLint config found. Skipping."
+        fi
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}

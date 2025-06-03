@@ -1,0 +1,21 @@
+name: CI - Next.js
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [ main, dev, feature/** ]
+    paths:
+      - '**.js'
+      - '**.ts'
+      - '**.tsx'
+      - 'package.json'
+      - 'next.config.js'
+
+
+jobs:
+  ci:
+    uses: './.github/workflows/frontend/nextjs/ci.yml'
+    with:
+      working-directory: '.'
+      environment: 'dev'

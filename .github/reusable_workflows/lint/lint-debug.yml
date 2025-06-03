@@ -1,0 +1,19 @@
+name: Lint Debug
+
+on:
+  workflow_dispatch:
+    inputs:
+      working-directory:
+        type: string
+        default: '.'
+      language:
+        type: choice
+        options: [node, nuxt, next, python, go, rust, java, cpp]
+        default: 'python'
+
+jobs:
+  lint:
+    uses: ./.github/workflows/lint.yml
+    with:
+      working-directory: ${{ inputs.working-directory }}
+      language: ${{ inputs.language }}

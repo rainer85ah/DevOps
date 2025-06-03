@@ -1,0 +1,37 @@
+name: CD - Next.js
+
+on:
+  push:
+    branches:
+      - main          # deploy to staging
+      - release/**    # deploy to production
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - dev
+          - uat
+          - staging
+          - prod
+      artifact-tag:
+        description: 'Docker image tag to deploy'
+        required: true
+
+jobs:
+  cd:
+    uses: ./.github/workflows/cd.yml
+    with:
+      working-directory: '.'
+      environment: >-
+        ${{ github.event_name == 'workflow_dispatch' && inputs.environment ||
+            (github.ref_name == 'main' && 'staging') ||
+            (startsWith(github.ref_name, 'release/') && 'prod') ||
+            'uat' }}
+      artifact-tag: >-
+        ${{ github.event_name == 'workflow_dispatch' && inputs.artifact-tag || 
+            (github.sha || 'latest') }}

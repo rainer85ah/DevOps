@@ -1,0 +1,26 @@
+name: Notify Slack
+
+inputs:
+  message:
+    required: true
+  title:
+    required: false
+    default: "CI Notification"
+  status:
+    required: false
+    default: "info"
+  environment:
+    required: false
+    default: ""
+
+runs:
+  using: "composite"
+  steps:
+    - uses: slackapi/slack-github-action@v1.24.0
+      with:
+        payload: |
+          {
+            "text": "*${{ inputs.title }}* in `${{ inputs.environment }}`\n${{ inputs.message }}\nStatus: `${{ inputs.status }}`"
+          }
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

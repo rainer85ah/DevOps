@@ -1,0 +1,54 @@
+name: Test Any App
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        required: false
+        default: "."
+        type: string
+      environment:
+        required: false
+        default: "dev"
+        type: string
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      app_type: ${{ steps.detect.outputs.app_type }}
+      language: ${{ steps.detect.outputs.language }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: detect
+        run: |
+          cd "${{ inputs.working-directory }}"
+          if [ -f "package.json" ]; then
+            if grep -q '"nuxt"' package.json; then
+              echo "app_type=frontend" >> $GITHUB_OUTPUT
+              echo "language=nuxt" >> $GITHUB_OUTPUT
+            elif grep -q '"next"' package.json; then
+              echo "app_type=frontend" >> $GITHUB_OUTPUT
+              echo "language=next" >> $GITHUB_OUTPUT
+            else
+              echo "app_type=frontend" >> $GITHUB_OUTPUT
+              echo "language=node" >> $GITHUB_OUTPUT
+            fi
+          elif [ -f "main.go" ]; then
+            echo "app_type=backend" >> $GITHUB_OUTPUT
+            echo "language=go" >> $GITHUB_OUTPUT
+          elif [ -f "main.py" ] || ls *.py > /dev/null 2>&1; then
+            echo "app_type=backend" >> $GITHUB_OUTPUT
+            echo "language=python" >> $GITHUB_OUTPUT
+          elif ls *.java > /dev/null 2>&1; then
+            echo "app_type=backend" >> $GITHUB_OUTPUT
+            echo "language=java" >> $GITHUB_OUTPUT
+          elif ls *.rs > /dev/null 2>&1; then
+            echo "app_type=backend" >> $GITHUB_OUTPUT
+            echo "language=rust" >> $GITHUB_OUTPUT
+          elif ls *.cpp > /dev/null 2>&1 || ls *.cc > /dev/null 2>&1; then
+            echo "app_type=backend" >> $GITHUB_OUTPUT
+            echo "language=cpp" >> $GITHUB_OUTPUT
+          else
+            echo

@@ -1,0 +1,40 @@
+name: Continuous Deployment
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        required: false
+        type: string
+        default: '.'
+      environment:
+        required: true
+        type: string
+      artifact-tag:
+        required: true
+        type: string
+      strategy:
+        required: false
+        type: string
+        default: 'rolling'
+      infra:
+        required: false
+        type: string
+        default: 'kubernetes'
+
+jobs:
+  deploy:
+    uses: ./.github/actions/deploy
+    with:
+      environment: ${{ inputs.environment }}
+      working-directory: ${{ inputs.working-directory }}
+      artifact-tag: ${{ inputs.artifact-tag }}
+      strategy: ${{ inputs.strategy }}
+      infra: ${{ inputs.infra }}
+
+  notify:
+    needs: deploy
+    uses: ./.github/actions/notify
+    with:
+      environment: ${{ inputs.environment }}
+      status: ${{ needs.deploy.result }}

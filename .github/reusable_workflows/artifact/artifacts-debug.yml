@@ -1,0 +1,38 @@
+name: Debug Artifacts Module
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: "Upload or Download"
+        required: true
+        default: "upload"
+        type: choice
+        options:
+          - upload
+          - download
+      registry:
+        description: "Container registry"
+        required: true
+        default: "dockerhub"
+        type: choice
+        options:
+          - dockerhub
+          - ghrc
+      image-name:
+        description: "Image name"
+        required: true
+        default: "myorg/myapp"
+      tag:
+        description: "Image tag"
+        required: false
+        default: "latest"
+
+jobs:
+  debug-artifacts:
+    uses: ./.github/workflows/artifacts.yml
+    with:
+      operation: ${{ inputs.operation }}
+      registry: ${{ inputs.registry }}
+      image-name: ${{ inputs.image-name }}
+      tag: ${{ inputs.tag }}

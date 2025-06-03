@@ -1,0 +1,20 @@
+name: Debug Build Module
+
+on:
+  workflow_dispatch:
+    inputs:
+      working-directory:
+        description: 'Path to the app'
+        required: false
+        default: '.'
+      environment:
+        description: 'Environment to build-image for'
+        required: false
+        default: 'dev'
+
+jobs:
+  debug-build:
+    uses: ./.github/workflows/build-image.yml
+    with:
+      working-directory: ${{ github.event.inputs.working-directory }}
+      environment: ${{ github.event.inputs.environment }}

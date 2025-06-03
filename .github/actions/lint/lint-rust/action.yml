@@ -1,0 +1,19 @@
+name: Lint Rust
+
+inputs:
+  working-directory:
+    required: false
+    default: "."
+    type: string
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        components: clippy
+
+    - run: cargo clippy --all-targets --all-features -- -D warnings
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}

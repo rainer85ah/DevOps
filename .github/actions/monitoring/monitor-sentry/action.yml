@@ -1,0 +1,34 @@
+name: Monitor - Sentry
+
+on:
+  workflow_call:
+    inputs:
+      workflow-name:
+        required: true
+        type: string
+      job-status:
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
+      sentry-dsn:
+        required: true
+        type: string
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Sentry
+        env:
+          SENTRY_DSN: ${{ inputs.sentry-dsn }}
+        run: |
+          echo "Sending monitoring event to Sentry..."
+          curl -X POST "$SENTRY_DSN" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "workflow": "${{ inputs.workflow-name }}",
+              "status": "${{ inputs.job-status }}",
+              "environment": "${{ inputs.environment }}"
+            }'

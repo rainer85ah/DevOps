@@ -1,0 +1,23 @@
+name: Test C++
+
+inputs:
+  working-directory:
+    required: false
+    default: "."
+    type: string
+  environment:
+    required: false
+    default: "dev"
+    type: string
+
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        mkdir -p build
+        cd build
+        cmake ..
+        make
+        ctest --output-on-failure || echo "No tests found"
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}

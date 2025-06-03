@@ -1,0 +1,26 @@
+name: Golang CD Pipeline
+
+on:
+  push:
+    branches:
+      - main          # deploy to staging
+      - release/**    # deploy to production
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - dev
+          - uat
+          - staging
+          - prod
+
+jobs:
+  cd:
+    uses: './.github/workflows/cd.yml'
+    with:
+      working-directory: '.'
+      environment: ${{ inputs.environment }}

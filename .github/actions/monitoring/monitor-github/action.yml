@@ -1,0 +1,24 @@
+name: Monitor - GitHub Native
+
+on:
+  workflow_call:
+    inputs:
+      workflow-name:
+        required: true
+        type: string
+      job-status:
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
+
+jobs:
+  log-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo GitHub-native monitoring
+        run: |
+          echo "📘 GitHub Workflow: ${{ inputs.workflow-name }}"
+          echo "🔧 Status: ${{ inputs.job-status }}"
+          echo "🌎 Environment: ${{ inputs.environment }}"

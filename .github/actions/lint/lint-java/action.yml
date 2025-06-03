@@ -1,0 +1,21 @@
+name: Lint Java
+
+inputs:
+  working-directory:
+    required: false
+    default: "."
+    type: string
+
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        if [ -f gradlew ]; then
+          ./gradlew check
+        elif [ -f pom.xml ]; then
+          mvn checkstyle:check
+        else
+          echo "No Java build tool found. Skipping."
+        fi
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}

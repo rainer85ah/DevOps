@@ -1,0 +1,33 @@
+name: Monitor - Datadog
+
+on:
+  workflow_call:
+    inputs:
+      workflow-name:
+        required: true
+        type: string
+      job-status:
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
+      datadog-api-key:
+        required: true
+        type: string
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send event to Datadog
+        run: |
+          curl -X POST "https://api.datadoghq.com/api/v1/events" \
+            -H "Content-Type: application/json" \
+            -H "DD-API-KEY: ${{ inputs.datadog-api-key }}" \
+            -d '{
+              "title": "GitHub Actions - ${{ inputs.workflow-name }}",
+              "text": "Status: ${{ inputs.job-status }}\nEnvironment: ${{ inputs.environment }}",
+              "tags": ["env:${{ inputs.environment }}", "ci"],
+              "alert_type": "${{ inputs.job-status == 'success' && 'success' || 'error' }}"
+            }'

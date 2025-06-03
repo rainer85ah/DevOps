@@ -1,0 +1,78 @@
+name: Continuous Integration
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        required: false
+        type: string
+        default: '.'
+      environment:
+        required: false
+        type: string
+        default: 'dev'
+    outputs:
+      image-tag:
+        value: ${{ jobs.build.outputs.image-tag }}
+
+jobs:
+  detect-language:
+    runs-on: ubuntu-latest
+    outputs:
+      language: ${{ steps.detect.outputs.language }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: detect
+        run: |
+          cd "${{ inputs.working-directory }}"
+          if [ -f "package.json" ]; then
+            if grep -q '"nuxt"' package.json; then
+              echo "language=nuxt" >> $GITHUB_OUTPUT
+            elif grep -q '"next"' package.json; then
+              echo "language=next" >> $GITHUB_OUTPUT
+            else
+              echo "language=node" >> $GITHUB_OUTPUT
+            fi
+          elif [ -f "main.go" ]; then
+            echo "language=go" >> $GITHUB_OUTPUT
+          elif [ -f "main.py" ] || ls *.py > /dev/null 2>&1; then
+            echo "language=python" >> $GITHUB_OUTPUT
+          elif ls *.java > /dev/null 2>&1; then
+            echo "language=java" >> $GITHUB_OUTPUT
+          elif ls *.rs > /dev/null 2>&1; then
+            echo "language=rust" >> $GITHUB_OUTPUT
+          elif ls *.cpp > /dev/null 2>&1 || ls *.cc > /dev/null 2>&1; then
+            echo "language=cpp" >> $GITHUB_OUTPUT
+          else
+            echo "language=unknown" >> $GITHUB_OUTPUT
+          fi
+
+  lint:
+    needs: detect-language
+    uses: ./.github/actions/lint
+    with:
+      language: ${{ needs.detect-language.outputs.language }}
+      working-directory: ${{ inputs.working-directory }}
+
+  test:
+    needs: detect-language
+    uses: ./.github/actions/test
+    with:
+      language: ${{ needs.detect-language.outputs.language }}
+      working-directory: ${{ inputs.working-directory }}
+      environment: ${{ inputs.environment }}
+
+  build:
+    needs: detect-language
+    uses: ./.github/workflows/build.yml
+    with:
+      working-directory: ${{ inputs.working-directory }}
+      environment: ${{ inputs.environment }}
+
+  artifact:
+    needs: build
+    uses: ./.github/actions/artifact
+    with:
+      working-directory: ${{ inputs.working-directory }}
+      environment: ${{ inputs.environment }}
+      image-tag: ${{ needs.build.outputs.image-tag }}

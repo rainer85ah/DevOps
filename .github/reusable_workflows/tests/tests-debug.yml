@@ -1,0 +1,23 @@
+name: Tests Debug
+
+on:
+  workflow_dispatch:
+    inputs:
+      working-directory:
+        type: string
+        default: '.'
+      language:
+        type: choice
+        options: [node, nuxt, next, python, go, rust, java, cpp]
+        default: 'python'
+      environment:
+        type: string
+        default: 'dev'
+
+jobs:
+  tests:
+    uses: ./.github/workflows/tests.yml
+    with:
+      working-directory: ${{ inputs.working-directory }}
+      language: ${{ inputs.language }}
+      environment: ${{ inputs.environment }}

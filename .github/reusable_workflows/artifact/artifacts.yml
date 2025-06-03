@@ -1,0 +1,67 @@
+name: Artifacts Handler
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        required: false
+        default: "."
+        type: string
+      operation:
+        required: true
+        type: string  # upload or download
+      registry:
+        required: true
+        type: string  # dockerhub or ghrc
+      image-name:
+        required: true
+        type: string
+      tag:
+        required: false
+        default: "latest"
+        type: string
+
+jobs:
+  artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image (only for upload)
+        if: ${{ inputs.operation == 'upload' }}
+        run: |
+          cd ${{ inputs.working-directory }}
+          docker build -t ${{ inputs.image-name }}:${{ inputs.tag }} .
+
+      - name: Log in to registry
+        run: |
+          if [ "${{ inputs.registry }}" = "dockerhub" ]; then
+            echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+          elif [ "${{ inputs.registry }}" = "ghrc" ]; then
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
+          else
+            echo "Unsupported registry: ${{ inputs.registry }}"
+            exit 1
+          fi
+        shell: bash
+
+      - name: Tag and Push or Pull Image
+        run: |
+          if [ "${{ inputs.registry }}" = "dockerhub" ]; then
+            REGISTRY_PREFIX="docker.io/"
+          else
+            REGISTRY_PREFIX="ghcr.io/"
+          fi
+
+          IMAGE_REF="${REGISTRY_PREFIX}${{ inputs.image-name }}:${{ inputs.tag }}"
+
+          if [ "${{ inputs.operation }}" = "upload" ]; then
+            docker tag ${{ inputs.image-name }}:${{ inputs.tag }} $IMAGE_REF
+            docker push $IMAGE_REF
+          elif [ "${{ inputs.operation }}" = "download" ]; then
+            docker pull $IMAGE_REF
+          else
+            echo "Unsupported operation: ${{ inputs.operation }}"
+            exit 1
+          fi
+        shell: bash

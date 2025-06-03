@@ -1,0 +1,27 @@
+name: Debug Deploy Module
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to (dev, uat, stag, prod)'
+        required: true
+      image-tag:
+        description: 'Docker image tag or artifact to deploy'
+        required: true
+      strategy:
+        description: 'Deployment strategy'
+        required: false
+        default: 'rolling'
+      platform:
+        description: 'Deployment platform (kubernetes, ecs, vm)'
+        required: true
+
+jobs:
+  deploy:
+    uses: ./.github/actions/deploy
+    with:
+      environment: ${{ github.event.inputs.environment }}
+      image-tag: ${{ github.event.inputs.image-tag }}
+      strategy: ${{ github.event.inputs.strategy }}
+      platform: ${{ github.event.inputs.platform }}
