@@ -1,0 +1,13 @@
+name: node-api
+type: backend
+framework: express
+language: javascript
+ci: true
+cd: true
+test: true
+build: true
+deploy:
+  enabled: true
+  platform: ecs
+  strategy: blue-green
+environment: prod

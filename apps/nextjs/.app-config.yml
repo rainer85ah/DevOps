@@ -1,0 +1,13 @@
+name: nextjsApp
+type: frontend
+framework: nextjs
+language: javascript
+ci: true
+cd: true
+test: true
+build: true
+deploy:
+  enabled: true
+  platform: kubernetes
+  strategy: rolling
+environment: staging

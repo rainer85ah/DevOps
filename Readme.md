@@ -32,6 +32,29 @@ To provide a curated collection of **modular**, **production-inspired**, and **e
 - Guide aspiring and current DevOps engineers on key focus areas.
 - Encourage collaboration and learning in the DevOps community.
 
+## 🔧 What This Repo Contains
+
+- Reusable Actions & Workflows: Common CI/CD steps are abstracted into reusable GitHub Actions and workflows.
+
+- App Simulations: Each subdirectory in the apps/ folder simulates a standalone application (e.g., frontend, backend, ML, APIs).
+
+- CI/CD Examples: End-to-end examples of testing, building, and deploying different app types.
+
+- Documentation: Clear guides on structure, usage, best practices, and examples.
+
+## 📁 Folder Overview
+
+```text
+devops/
+├── .github/
+│   ├── actions/            # Custom reusable actions
+│   ├── workflows/          # Shared reusable workflows (CI, CD, etc.)
+│   └── templates/          # Optional templates per app type
+├── apps/                   # Example apps (simulated as separate repos)
+├── docs/                   # Project documentation
+└── README.md               # Project summary
+```
+
 ## CI (Continuous Integration) Steps
 
 **Focus:** Build, test, and prepare the application artifact.

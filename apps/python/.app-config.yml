@@ -1,0 +1,13 @@
+name: python-app
+type: backend
+framework: custom
+language: python
+ci: true
+cd: true
+test: true
+build: false
+deploy:
+  enabled: true
+  platform: vm
+  strategy: standard
+environment: dev

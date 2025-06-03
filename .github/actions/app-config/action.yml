@@ -1,0 +1,48 @@
+name: 'Parse App Config'
+description: 'Reads .app-config.yml and outputs app metadata for use in workflows.'
+
+inputs:
+  path:
+    description: 'Path to the .app-config.yml file'
+    required: true
+    type: string
+
+outputs:
+  name:
+    description: 'App name'
+    value: ${{ steps.read.outputs.name }}
+  type:
+    description: 'App type'
+    value: ${{ steps.read.outputs.type }}
+  language:
+    description: 'Programming language'
+    value: ${{ steps.read.outputs.language }}
+  deploy_enabled:
+    description: 'Whether deployment is enabled'
+    value: ${{ steps.read.outputs.deploy_enabled }}
+  test_enabled:
+    description: 'Whether testing is enabled'
+    value: ${{ steps.read.outputs.test_enabled }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Read config file
+      id: read
+      shell: bash
+      run: |
+        values=$(yq eval '.' "${{ inputs.path }}")
+
+        echo "name=$(echo \"$values\" | yq e '.name' -)" >> $GITHUB_OUTPUT
+        echo "type=$(echo \"$values\" | yq e '.type' -)" >> $GITHUB_OUTPUT
+        echo "language=$(echo \"$values\" | yq e '.language' -)" >> $GITHUB_OUTPUT
+        echo "deploy_enabled=$(echo \"$values\" | yq e '.deploy.enabled' -)" >> $GITHUB_OUTPUT
+        echo "test_enabled=$(echo \"$values\" | yq e '.test.enabled' -)" >> $GITHUB_OUTPUT
+
+    - name: Debug output
+      run: |
+        echo "App Name: ${{ steps.read.outputs.name }}"
+        echo "App Type: ${{ steps.read.outputs.type }}"
+        echo "Language: ${{ steps.read.outputs.language }}"
+        echo "Deploy Enabled: ${{ steps.read.outputs.deploy_enabled }}"
+        echo "Test Enabled: ${{ steps.read.outputs.test_enabled }}"

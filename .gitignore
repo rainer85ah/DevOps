@@ -1,0 +1,49 @@
+# dependencies
+**/node_modules/
+node_modules/
+.pnp/
+.pnp.js
+
+# Next.js build output
+**/.next/
+.next/
+out/
+
+# Production build
+build/
+
+# Testing
+coverage/
+jest.config.js
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Vercel/Netlify/Other deploy platform files
+.vercel/
+.netlify/
+
+# Editor directories and files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# TypeScript cache
+*.tsbuildinfo

@@ -1,0 +1,45 @@
+name: Matrix CI Pipeline
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev, feature/**]
+
+jobs:
+  discover:
+    name: Discover apps
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find .app-config.yml files
+        id: set-matrix
+        run: |
+          files=$(find . -name .app-config.yml)
+          json_matrix="["
+          for file in $files; do
+            app_dir=$(dirname "$file")
+            json_matrix+="{\"path\": \"$file\", \"dir\": \"$app_dir\"},"
+          done
+          json_matrix=${json_matrix%,}  # Remove trailing comma
+          json_matrix+="]"
+          echo "matrix=$json_matrix" >> $GITHUB_OUTPUT
+
+  run-ci:
+    name: Run CI for ${{ matrix.dir }}
+    needs: discover
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.discover.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Parse app config
+        uses: ./.github/actions/app-config
+        with:
+          path: ${{ matrix.path }}
+

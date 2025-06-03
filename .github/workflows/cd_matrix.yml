@@ -1,0 +1,49 @@
+name: Matrix CD
+
+description: Deploy multiple apps using matrix strategy based on .app-config.yml metadata
+
+on:
+  push:
+    branches: [main, release/**]
+  workflow_dispatch:
+
+jobs:
+  discover-apps:
+    name: Discover apps with deployment enabled
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Find all .app-config.yml files
+        id: find-configs
+        run: |
+          apps=$(find apps -type f -name .app-config.yml)
+          echo "config_files<<EOF" >> $GITHUB_OUTPUT
+          echo "$apps" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Parse metadata from each config
+        id: set-matrix
+        uses: ./.github/actions/app-config
+        with:
+          config-files: ${{ steps.find-configs.outputs.config_files }}
+
+  deploy:
+    name: Deploy ${{ matrix.app }}
+    needs: discover-apps
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.discover-apps.outputs.matrix) }}
+
+    steps:
+      - name: Deploy via reusable workflow
+        uses: ./.github/templates/cd.yml
+        with:
+          working-directory: ${{ matrix.path }}
+          environment: ${{ matrix.environment }}
+          artifact-tag: ${{ matrix.artifactTag }}
+          strategy: rolling
+          infra: ${{ matrix.infra }}

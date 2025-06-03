@@ -1,0 +1,12 @@
+name: CI
+
+on:
+  push:
+    paths:
+      - 'apps/nextjs/**'
+
+jobs:
+  run-ci:
+    uses: .github/workflows/ci.yml@main
+    with:
+      app-path: apps/nextjs

@@ -1,0 +1,13 @@
+name: goland-app
+type: backend
+framework: custom
+language: go
+ci: true
+cd: true
+test: true
+build: true
+deploy:
+  enabled: true
+  platform: kubernetes
+  strategy: rolling
+environment: staging
