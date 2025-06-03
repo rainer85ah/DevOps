@@ -51,7 +51,6 @@ devops/
 │   ├── workflows/          # Shared reusable workflows (CI, CD, etc.)
 │   └── templates/          # Optional templates per app type
 ├── apps/                   # Example apps (simulated as separate repos)
-├── docs/                   # Project documentation
 └── README.md               # Project summary
 ```
 
