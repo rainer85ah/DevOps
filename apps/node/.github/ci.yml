@@ -1,0 +1,12 @@
+name: Node App - CI Pipeline
+
+on:
+  push:
+    paths:
+      - 'apps/node/**'
+
+jobs:
+  run-ci:
+    uses: .github/workflows/ci.yml@main
+    with:
+      app-path: apps/node

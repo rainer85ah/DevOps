@@ -1,5 +1,5 @@
-name: "Build Image Delegator"
-description: "Delegates Docker image build to the correct stack-specific action"
+name: "Build Image Dispatcher"
+description: "Delegates Docker image build to the correct language-specific action"
 
 inputs:
   app-path:
@@ -8,7 +8,7 @@ inputs:
   image-name:
     required: true
     description: string
-  framework:
+  language:
     required: true
     description: string
   tag:
@@ -19,23 +19,47 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Build Next.js Docker image
-      if: ${{ contains(inputs.framework, 'nextjs') }}
-      uses: ./nextjs
+    - name: Build Python Docker image
+      if: ${{ inputs.language == 'python' }}
+      uses: ./python
       with:
         app-path: ${{ inputs.app-path }}
         image-name: ${{ inputs.image-name }}
         tag: ${{ inputs.tag }}
 
-    - name: Build Nuxt.js Docker image
-      if: ${{ contains(inputs.framework, 'nuxtjs') }}
-      uses: ./nuxtjs
+    - name: Build Java Docker image
+      if: ${{ inputs.language == 'java' }}
+      uses: ./java
+      with:
+        app-path: ${{ inputs.app-path }}
+        image-name: ${{ inputs.image-name }}
+        tag: ${{ inputs.tag }}
+
+    - name: Build Go Docker image
+      if: ${{ inputs.language == 'go' }}
+      uses: ./go
+      with:
+        app-path: ${{ inputs.app-path }}
+        image-name: ${{ inputs.image-name }}
+        tag: ${{ inputs.tag }}
+
+    - name: Build Node.js Docker image
+      if: ${{ inputs.language == 'node' || inputs.language == 'javascript' || inputs.language == 'typescript' }}
+      uses: ./node
+      with:
+        app-path: ${{ inputs.app-path }}
+        image-name: ${{ inputs.image-name }}
+        tag: ${{ inputs.tag }}
+
+    - name: Build Rust Docker image
+      if: ${{ inputs.language == 'rust' }}
+      uses: ./rust
       with:
         app-path: ${{ inputs.app-path }}
         image-name: ${{ inputs.image-name }}
         tag: ${{ inputs.tag }}
 
     - name: Build fallback
-      if: ${{ !contains('nextjs,nuxtjs', inputs.framework) }}
-      run: echo "No Docker build configured for ${{ inputs.framework }}."
+      if: ${{ !contains('python,java,go,node,javascript,typescript,rust', inputs.language) }}
+      run: echo "No Docker build configured for ${{ inputs.language }}."
       shell: bash

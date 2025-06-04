@@ -1,5 +1,5 @@
-name: "Deploy Nuxt.js to Kubernetes"
-description: "Deploys Nuxt.js Docker image to Kubernetes"
+name: "Deploy to Kubernetes/EKS"
+description: "Deploys Docker image to Kubernetes or EKS"
 
 inputs:
   app-path:
@@ -13,8 +13,8 @@ inputs:
     description: string
     default: "latest"
   environment:
-    description: string
     required: true
+    description: string
 
 runs:
   using: "composite"

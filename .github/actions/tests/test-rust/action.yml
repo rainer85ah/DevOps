@@ -1,22 +1,15 @@
 name: Test Rust
+description: Runs Rust tests
 
 inputs:
-  working-directory:
-    required: false
-    default: "."
-    type: string
-  environment:
-    required: false
-    default: "dev"
-    type: string
+  app-path:
+    required: true
+    description: string
 
 runs:
   using: "composite"
   steps:
-    - uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-
-    - run: cargo test --all
+    - run: |
+        cd "${{ inputs.app-path }}"
+        cargo test --all
       shell: bash
-      working-directory: ${{ inputs.working-directory }}

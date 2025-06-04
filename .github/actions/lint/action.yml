@@ -1,4 +1,4 @@
-name: "Lint Delegator"
+name: "Lint Dispatcher"
 description: "Delegates linting based on language"
 
 inputs:
@@ -15,19 +15,38 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Lint Next.js
-      if: ${{ contains(inputs.framework, 'nextjs') }}
-      uses: ./lint-nextjs
+    - name: Lint Python
+      if: ${{ inputs.language == 'python' }}
+      uses: ./lint-python
+      with:
+        app-path: ${{ inputs.app-path }}
 
-    - name: Lint Nuxt.js
-      if: ${{ contains(inputs.framework, 'nuxtjs') }}
-      uses: ./lint-nuxtjs
+    - name: Lint Java
+      if: ${{ inputs.language == 'java' }}
+      uses: ./lint-java
+      with:
+        app-path: ${{ inputs.app-path }}
 
-    - name: Lint JS/TS
-      if: ${{ (inputs.language == 'javascript' || inputs.language == 'typescript') && !contains(inputs.framework, 'nextjs') && !contains(inputs.framework, 'nuxtjs') }}
-      uses: ./lint-js
+    - name: Lint Go
+      if: ${{ inputs.language == 'go' }}
+      uses: ./lint-go
+      with:
+        app-path: ${{ inputs.app-path }}
+
+    - name: Lint Node.js
+      if: ${{ inputs.language == 'node' || inputs.language == 'javascript' || inputs.language == 'typescript' }}
+      uses: ./lint-node
+      with:
+        app-path: ${{ inputs.app-path }}
+
+    - name: Lint Rust
+      if: ${{ inputs.language == 'rust' }}
+      uses: ./lint-rust
+      with:
+        app-path: ${{ inputs.app-path }}
 
     - name: Lint fallback
-      if: ${{ !contains('nextjs,nuxtjs', inputs.framework) && !(inputs.language == 'javascript' || inputs.language == 'typescript') }}
-      run: echo "No linter configured for ${{ inputs.framework }} (${{ inputs.language }})."
+      if: ${{ !contains('python,java,go,node,javascript,typescript,rust', inputs.language) }}
+      run: echo "No linter configured for ${{ inputs.language }}."
       shell: bash
+

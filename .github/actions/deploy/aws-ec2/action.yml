@@ -1,0 +1,25 @@
+name: "Deploy to AWS EC2"
+description: "Deploys Docker image to an AWS EC2 instance/cluster"
+
+inputs:
+  app-path:
+    required: true
+    description: string
+  image-name:
+    required: true
+    description: string
+  tag:
+    required: false
+    description: string
+    default: "latest"
+  environment:
+    required: true
+    description: string
+
+runs:
+  using: "composite"
+  steps:
+    - name: Deploy to EC2 (customize as needed)
+      run: |
+        echo "You can use scp, ssh, SSM, or ECS CLI here to deploy on EC2. This is a placeholder."
+      shell: bash

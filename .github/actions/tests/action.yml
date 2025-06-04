@@ -1,4 +1,4 @@
-name: "Test Delegator"
+name: "Test Dispatcher"
 description: "Delegates testing to the correct stack-specific action"
 
 inputs:
@@ -15,19 +15,37 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Test Next.js
-      if: ${{ contains(inputs.framework, 'nextjs') }}
-      uses: ./tests-nextjs
+    - name: Test Python
+      if: ${{ inputs.language == 'python' }}
+      uses: ./test-python
+      with:
+        app-path: ${{ inputs.app-path }}
 
-    - name: Test Nuxt.js
-      if: ${{ contains(inputs.framework, 'nuxtjs') }}
-      uses: ./tests-nuxtjs
+    - name: Test Java
+      if: ${{ inputs.language == 'java' }}
+      uses: ./test-java
+      with:
+        app-path: ${{ inputs.app-path }}
 
-    - name: Test JS/TS
-      if: ${{ (inputs.language == 'javascript' || inputs.language == 'typescript') && !contains(inputs.framework, 'nextjs') && !contains(inputs.framework, 'nuxtjs') }}
-      uses: ./tests-js
+    - name: Test Go
+      if: ${{ inputs.language == 'go' }}
+      uses: ./test-go
+      with:
+        app-path: ${{ inputs.app-path }}
+
+    - name: Test Node.js
+      if: ${{ inputs.language == 'node' || inputs.language == 'javascript' || inputs.language == 'typescript' }}
+      uses: ./test-node
+      with:
+        app-path: ${{ inputs.app-path }}
+
+    - name: Test Rust
+      if: ${{ inputs.language == 'rust' }}
+      uses: ./test-rust
+      with:
+        app-path: ${{ inputs.app-path }}
 
     - name: Test fallback
-      if: ${{ !contains('nextjs,nuxtjs', inputs.framework) && !(inputs.language == 'javascript' || inputs.language == 'typescript') }}
-      run: echo "No test runner configured for ${{ inputs.framework }} (${{ inputs.language }})."
+      if: ${{ !contains('python,java,go,node,javascript,typescript,rust', inputs.language) }}
+      run: echo "No test runner configured for ${{ inputs.language }}."
       shell: bash

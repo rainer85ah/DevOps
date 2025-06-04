@@ -1,26 +1,20 @@
 name: Test Node.js
+description: Runs Node.js tests using Jest or npm test
 
 inputs:
-  working-directory:
-    required: false
-    default: "."
-    type: string
-  environment:
-    required: false
-    default: "dev"
-    type: string
+  app-path:
+    required: true
+    description: string
 
 runs:
   using: "composite"
   steps:
-    - uses: actions/setup-node@v4
-
     - run: |
-        npm ci
-        if npm run | grep -q test; then
-          npm test
+        cd "${{ inputs.app-path }}"
+        npm ci || yarn install
+        if [ -f "jest.config.js" ]; then
+          npx jest --ci
         else
-          echo "No test script found in package.json"
+          npm test -- --ci || yarn test --ci
         fi
       shell: bash
-      working-directory: ${{ inputs.working-directory }}

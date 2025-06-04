@@ -1,26 +1,15 @@
 name: Test Java
+description: Runs Java tests using Gradle or Maven
 
 inputs:
-  working-directory:
-    required: false
-    default: "."
-    type: string
-  environment:
-    required: false
-    default: "dev"
-    type: string
+  app-path:
+    required: true
+    description: string
 
 runs:
   using: "composite"
   steps:
     - run: |
-        if [ -f gradlew ]; then
-          ./gradlew test
-        elif [ -f pom.xml ]; then
-          mvn test
-        else
-          echo "No Java build tool found."
-          exit 1
-        fi
+        cd "${{ inputs.app-path }}"
+        ./gradlew test || ./mvnw test
       shell: bash
-      working-directory: ${{ inputs.working-directory }}

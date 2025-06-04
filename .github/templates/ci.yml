@@ -1,4 +1,4 @@
-name: CI Template with with reusable workflows
+name: Reusable CI Template
 
 on:
   workflow_call:
@@ -35,6 +35,7 @@ jobs:
         with:
           app-path: ${{ inputs.app-path }}
           language: ${{ needs.read-config.outputs.language }}
+          framework: ${{ needs.read-config.outputs.framework }}
 
   test:
     needs: lint
@@ -46,6 +47,7 @@ jobs:
         with:
           app-path: ${{ inputs.app-path }}
           language: ${{ needs.read-config.outputs.language }}
+          framework: ${{ needs.read-config.outputs.framework }}
 
   build:
     needs: test
@@ -57,16 +59,10 @@ jobs:
         with:
           app-path: ${{ inputs.app-path }}
           image-name: ${{ needs.read-config.outputs.name }}
+          language: ${{ needs.read-config.outputs.language }}
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ needs.read-config.outputs.name }}-build
-          path: ${{ inputs.app-path }}/.next
+          path: ${{ inputs.app-path }}
 
-  artifact:
-    needs: build
-    uses: ./.github/actions/artifact
-    with:
-      working-directory: ${{ inputs.working-directory }}
-      environment: ${{ inputs.environment }}
-      image-tag: ${{ needs.build.outputs.image-tag }}

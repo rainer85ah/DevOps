@@ -1,22 +1,17 @@
 name: Test Python
+description: Runs Python tests using pytest
 
 inputs:
-  working-directory:
-    required: false
-    default: "."
-    type: string
-  environment:
-    required: false
-    default: "dev"
-    type: string
+  app-path:
+    required: true
+    description: Lints Go code
 
 runs:
   using: "composite"
   steps:
-    - uses: actions/setup-python@v5
-
     - run: |
-        pip install -r requirements.txt
-        pytest --maxfail=5 --disable-warnings --tb=short
+        cd "${{ inputs.app-path }}"
+        pip install pytest
+        pytest
       shell: bash
       working-directory: ${{ inputs.working-directory }}

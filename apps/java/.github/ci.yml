@@ -1,0 +1,12 @@
+name: Java App - CI Pipeline
+
+on:
+  push:
+    paths:
+      - 'apps/java/**'
+
+jobs:
+  run-ci:
+    uses: .github/workflows/ci.yml@main
+    with:
+      app-path: apps/java

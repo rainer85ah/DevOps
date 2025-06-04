@@ -1,22 +1,16 @@
 name: Lint Node.js
+description: Lints Node.js code using ESLint
 
 inputs:
-  working-directory:
-    required: false
-    default: "."
-    type: string
+  app-path:
+    required: true
+    description: string
 
 runs:
   using: "composite"
   steps:
-    - uses: actions/setup-node@v4
-
     - run: |
-        npm ci
-        if [ -f .eslintrc.js ] || [ -f .eslintrc.json ]; then
-          npx eslint .
-        else
-          echo "No ESLint config found. Skipping."
-        fi
+        cd "${{ inputs.app-path }}"
+        npm ci || yarn install
+        npx eslint . --ext .js,.ts
       shell: bash
-      working-directory: ${{ inputs.working-directory }}

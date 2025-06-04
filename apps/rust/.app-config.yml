@@ -1,7 +1,7 @@
-name: goland-app
+name: rust-app
 type: backend
 framework: custom
-language: go
+language: rust
 ci: true
 cd: true
 test: true

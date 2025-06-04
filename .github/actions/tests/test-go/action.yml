@@ -1,20 +1,15 @@
 name: Test Go
+description: Runs Go tests
 
 inputs:
-  working-directory:
-    required: false
-    default: "."
-    type: string
-  environment:
-    required: false
-    default: "dev"
-    type: string
+  app-path:
+    required: true
+    description: string
 
 runs:
   using: "composite"
   steps:
-    - uses: actions/setup-go@v5
-
-    - run: go test ./... -v
+    - run: |
+        cd "${{ inputs.app-path }}"
+        go test ./...
       shell: bash
-      working-directory: ${{ inputs.working-directory }}

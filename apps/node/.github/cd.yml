@@ -1,0 +1,10 @@
+name: Node App - CD Pipeline
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-cd:
+    uses: .github/workflows/cd.yml@main
+    with:
+      app-path: apps/node

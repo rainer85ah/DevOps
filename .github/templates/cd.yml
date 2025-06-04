@@ -1,4 +1,4 @@
-name: CD Template with with reusable workflows
+name: Reusable CD Template
 
 on:
   workflow_call:
@@ -12,9 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       name: ${{ steps.config.outputs.name }}
+      language: ${{ steps.config.outputs.language }}
       deploy_enabled: ${{ steps.config.outputs.deploy_enabled }}
       deploy_platform: ${{ steps.config.outputs.deploy_platform }}
-      deploy_strategy: ${{ steps.config.outputs.deploy_strategy }}
       environment: ${{ steps.config.outputs.environment }}
       notify_method: ${{ steps.config.outputs.notify_method }}
     steps:
@@ -25,32 +25,42 @@ jobs:
         with:
           app-path: ${{ inputs.app-path }}
 
-  deploy:
+  download-artifact:
     needs: read-config
     runs-on: ubuntu-latest
     if: ${{ needs.read-config.outputs.deploy_enabled == 'true' }}
     steps:
-      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: ${{ needs.read-config.outputs.name }}-build
-      - uses: ./.github/actions/build-image
-        with:
-          app-path: ${{ inputs.app-path }}
-          image-name: ${{ needs.read-config.outputs.name }}
+          path: ${{ inputs.app-path }}
+
+  deploy:
+    needs: [read-config, download-artifact]
+    runs-on: ubuntu-latest
+    if: ${{ needs.read-config.outputs.deploy_enabled == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/deploy
         with:
           platform: ${{ needs.read-config.outputs.deploy_platform }}
           app-path: ${{ inputs.app-path }}
           image-name: ${{ needs.read-config.outputs.name }}
+          language: ${{ needs.read-config.outputs.language }}
+          tag: "latest"
           environment: ${{ needs.read-config.outputs.environment }}
+          stack-name: ${{ needs.read-config.outputs.name }}
+          docker-host: ${{ secrets.DOCKER_HOST }}
+          docker-username: ${{ secrets.DOCKER_USERNAME }}
+          docker-password: ${{ secrets.DOCKER_PASSWORD }}
 
   notify:
     needs: deploy
     runs-on: ubuntu-latest
-    if: ${{ needs.read-config.outputs.deploy_enabled == 'true' }}
+    if: ${{ always() && needs.read-config.outputs.deploy_enabled == 'true' }}
     steps:
       - uses: ./.github/actions/notify
         with:
-          method: ${{ needs.read-config.outputs.notify_method }}
+          method: ${{ needs.read-config.outputs.notify_method || 'slack' }}
           message: "Deployed ${{ needs.read-config.outputs.name }} to ${{ needs.read-config.outputs.deploy_platform }} (${{ needs.read-config.outputs.environment }})"
+

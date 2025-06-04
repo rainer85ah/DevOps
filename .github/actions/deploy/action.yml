@@ -37,18 +37,9 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Deploy Next.js to Kubernetes
-      if: ${{ contains(inputs.framework, 'nextjs') && (inputs.platform == 'kubernetes' || inputs.platform == 'eks') }}
-      uses: ./nextjs-k8s
-      with:
-        app-path: ${{ inputs.app-path }}
-        image-name: ${{ inputs.image-name }}
-        tag: ${{ inputs.tag }}
-        environment: ${{ inputs.environment }}
-
-    - name: Deploy Nuxt.js to Kubernetes
-      if: ${{ contains(inputs.framework, 'nuxtjs') && (inputs.platform == 'kubernetes' || inputs.platform == 'eks') }}
-      uses: ./nuxtjs-k8s
+    - name: Deploy to Kubernetes
+      if: ${{ inputs.platform == 'kubernetes' || inputs.platform == 'eks' }}
+      uses: ./deploy-k8s
       with:
         app-path: ${{ inputs.app-path }}
         image-name: ${{ inputs.image-name }}
@@ -57,7 +48,7 @@ runs:
 
     - name: Deploy to Docker Swarm
       if: ${{ inputs.platform == 'swarm' }}
-      uses: ./docker-swarm
+      uses: ./deploy-swarm
       with:
         app-path: ${{ inputs.app-path }}
         stack-name: ${{ inputs.stack-name }}
@@ -65,7 +56,16 @@ runs:
         docker-username: ${{ inputs.docker-username }}
         docker-password: ${{ inputs.docker-password }}
 
+    - name: Deploy to AWS EC2
+      if: ${{ inputs.platform == 'ec2' }}
+      uses: ./deploy-ec2
+      with:
+        app-path: ${{ inputs.app-path }}
+        image-name: ${{ inputs.image-name }}
+        tag: ${{ inputs.tag }}
+        environment: ${{ inputs.environment }}
+
     - name: Deploy fallback
-      if: ${{ !contains('nextjs,nuxtjs', inputs.framework) || !(inputs.platform == 'kubernetes' || inputs.platform == 'eks') }}
-      run: echo "No deploy routine configured for ${{ inputs.framework }} to ${{ inputs.platform }}."
+      if: ${{ !contains('kubernetes,eks,swarm,ec2', inputs.platform) }}
+      run: echo "No deploy routine configured for ${{ inputs.platform }}."
       shell: bash

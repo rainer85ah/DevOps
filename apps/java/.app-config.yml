@@ -1,7 +1,9 @@
-name: python
-framework: fastapi
-language: python
-lint: true
+name: java-app
+type: backend
+framework: custom
+language: java
+ci: true
+cd: true
 test: true
 build: true
 deploy:
@@ -9,5 +11,3 @@ deploy:
   platform: kubernetes
   strategy: rolling
 environment: staging
-notify:
-  method: slack
