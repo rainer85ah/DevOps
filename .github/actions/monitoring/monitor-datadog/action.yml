@@ -1,33 +1,17 @@
-name: Monitor - Datadog
+name: "DataDog Monitoring"
+description: "Sends deployment notification to DataDog"
 
-on:
-  workflow_call:
-    inputs:
-      workflow-name:
-        required: true
-        type: string
-      job-status:
-        required: true
-        type: string
-      environment:
-        required: true
-        type: string
-      datadog-api-key:
-        required: true
-        type: string
+inputs:
+  app-path:
+    required: false
+    description: string
 
-jobs:
-  notify:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Send event to Datadog
-        run: |
-          curl -X POST "https://api.datadoghq.com/api/v1/events" \
-            -H "Content-Type: application/json" \
-            -H "DD-API-KEY: ${{ inputs.datadog-api-key }}" \
-            -d '{
-              "title": "GitHub Actions - ${{ inputs.workflow-name }}",
-              "text": "Status: ${{ inputs.job-status }}\nEnvironment: ${{ inputs.environment }}",
-              "tags": ["env:${{ inputs.environment }}", "ci"],
-              "alert_type": "${{ inputs.job-status == 'success' && 'success' || 'error' }}"
-            }'
+runs:
+  using: "composite"
+  steps:
+    - name: DataDog Deployment Marker
+      uses: DataDog/datadog-actions/monitor-notify@v1
+      with:
+        api-key: ${{ secrets.DATADOG_API_KEY }}
+        app-key: ${{ secrets.DATADOG_APP_KEY }}
+        message: "Deployment monitoring started for ${{ github.repository }}"

@@ -8,35 +8,26 @@ inputs:
   language:
     required: true
     description: string
+  framework:
+    required: false
+    description: string
 
 runs:
   using: "composite"
   steps:
+    - name: Lint Next.js
+      if: ${{ contains(inputs.framework, 'nextjs') }}
+      uses: ./lint-nextjs
+
+    - name: Lint Nuxt.js
+      if: ${{ contains(inputs.framework, 'nuxtjs') }}
+      uses: ./lint-nuxtjs
+
     - name: Lint JS/TS
-      if: ${{ inputs.language == 'javascript' || inputs.language == 'typescript' }}
-      run: |
-        cd "${{ inputs.app-path }}"
-        npm ci
-        npx eslint . --ext .js,.ts,.tsx
-      shell: bash
+      if: ${{ (inputs.language == 'javascript' || inputs.language == 'typescript') && !contains(inputs.framework, 'nextjs') && !contains(inputs.framework, 'nuxtjs') }}
+      uses: ./lint-js
 
-    - name: Lint Python
-      if: ${{ inputs.language == 'python' }}
-      run: |
-        cd "${{ inputs.app-path }}"
-        pip install flake8
-        flake8 .
-      shell: bash
-
-    - name: Lint Go
-      if: ${{ inputs.language == 'go' }}
-      run: |
-        cd "${{ inputs.app-path }}"
-        go fmt ./...
-        go vet ./...
-      shell: bash
-
-    - name: Skipped
-      if: ${{ !contains('javascript,typescript,python,go', inputs.language) }}
-      run: echo "No linter configured for ${{ inputs.language }}."
+    - name: Lint fallback
+      if: ${{ !contains('nextjs,nuxtjs', inputs.framework) && !(inputs.language == 'javascript' || inputs.language == 'typescript') }}
+      run: echo "No linter configured for ${{ inputs.framework }} (${{ inputs.language }})."
       shell: bash

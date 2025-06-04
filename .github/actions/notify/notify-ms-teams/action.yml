@@ -1,34 +1,16 @@
-name: Notify MS Teams
+name: "Notify MS Teams"
+description: "Sends notification to MS Teams"
 
 inputs:
   message:
     required: true
-  title:
-    required: false
-    default: "CI Notification"
-  status:
-    required: false
-    default: "info"
-  environment:
-    required: false
-    default: ""
+    description: string
 
 runs:
   using: "composite"
   steps:
-    - run: |
-        curl -H "Content-Type: application/json" \
-             -X POST \
-             -d '{
-               "@type": "MessageCard",
-               "@context": "https://schema.org/extensions",
-               "summary": "${{ inputs.title }}",
-               "themeColor": "0076D7",
-               "title": "${{ inputs.title }}",
-               "sections": [{
-                 "activityTitle": "Environment: ${{ inputs.environment }}",
-                 "text": "${{ inputs.message }}\n\nStatus: `${{ inputs.status }}`"
-               }]
-             }' \
-             ${{ secrets.MS_TEAMS_WEBHOOK_URL }}
-      shell: bash
+    - name: MS Teams Notify
+      uses: aliencube/microsoft-teams-actions@v0.9.0
+      with:
+        webhook-uri: ${{ secrets.MSTEAMS_WEBHOOK }}
+        message: ${{ inputs.message }}

@@ -1,0 +1,45 @@
+name: "Deploy to Docker Swarm"
+description: "Deploys a service stack to a Docker Swarm cluster"
+
+inputs:
+  app-path:
+    required: true
+    description: string
+  stack-name:
+    required: true
+    description: string
+  docker-host:
+    required: true
+    description: string
+  docker-username:
+    required: false
+    description: string
+  docker-password:
+    required: false
+    description: string
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Docker CLI
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y docker.io
+      shell: bash
+
+    - name: Authenticate to Docker Host
+      if: ${{ inputs.docker-username != '' && inputs.docker-password != '' }}
+      run: echo "${{ inputs.docker-password }}" | docker login ${{ inputs.docker-host }} -u ${{ inputs.docker-username }} --password-stdin
+      shell: bash
+
+    - name: Deploy Stack
+      run: |
+        export DOCKER_HOST=${{ inputs.docker-host }}
+        docker stack deploy -c ${{ inputs.app-path }}/docker-stack.yml ${{ inputs.stack-name }}
+      shell: bash
+
+    - name: List Services
+      run: |
+        export DOCKER_HOST=${{ inputs.docker-host }}
+        docker service ls
+      shell: bash

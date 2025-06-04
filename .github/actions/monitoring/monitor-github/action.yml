@@ -1,24 +1,15 @@
-name: Monitor - GitHub Native
+name: "GitHub Native Monitoring"
+description: "Uses GitHub Actions native checks"
 
-on:
-  workflow_call:
-    inputs:
-      workflow-name:
-        required: true
-        type: string
-      job-status:
-        required: true
-        type: string
-      environment:
-        required: true
-        type: string
+inputs:
+  app-path:
+    required: false
+    description: string
 
-jobs:
-  log-status:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Echo GitHub-native monitoring
-        run: |
-          echo "📘 GitHub Workflow: ${{ inputs.workflow-name }}"
-          echo "🔧 Status: ${{ inputs.job-status }}"
-          echo "🌎 Environment: ${{ inputs.environment }}"
+runs:
+  using: "composite"
+  steps:
+    - name: GitHub Native Status
+      run: |
+        echo "Monitoring deployment using GitHub native status checks."
+      shell: bash

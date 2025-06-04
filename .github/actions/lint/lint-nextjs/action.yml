@@ -1,0 +1,16 @@
+name: "Lint Next.js"
+description: "Lints a Next.js app"
+
+inputs:
+  app-path:
+    required: true
+    description: string
+
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        cd "${{ inputs.app-path }}"
+        npm ci
+        npx eslint . --ext .js,.ts,.tsx
+      shell: bash

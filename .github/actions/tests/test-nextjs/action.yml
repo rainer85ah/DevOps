@@ -1,0 +1,16 @@
+name: "Test Next.js"
+description: "Runs tests for a Next.js app"
+
+inputs:
+  app-path:
+    required: true
+    description: string
+
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        cd "${{ inputs.app-path }}"
+        npm ci
+        npx jest --ci || npm test -- --ci
+      shell: bash

@@ -1,5 +1,5 @@
 name: "Notification Delegator"
-description: "Sends notifications via Slack, Discord, or Email"
+description: "Sends notifications via Discord, Slack, Email, MS Teams, PagerDuty"
 
 inputs:
   method:
@@ -12,38 +12,37 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Notify Slack
-      if: ${{ inputs.method == 'slack' }}
-      uses: slackapi/slack-github-action@v1.26.0
-      with:
-        payload: |
-          {
-            "text": "${{ inputs.message }}"
-          }
-      env:
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
     - name: Notify Discord
       if: ${{ inputs.method == 'discord' }}
-      uses: Ilshidur/action-discord@v2
+      uses: ./notify-discord
       with:
-        webhook: ${{ secrets.DISCORD_WEBHOOK }}
+        message: ${{ inputs.message }}
+
+    - name: Notify Slack
+      if: ${{ inputs.method == 'slack' }}
+      uses: ./notify-slack
+      with:
         message: ${{ inputs.message }}
 
     - name: Notify Email
       if: ${{ inputs.method == 'email' }}
-      uses: dawidd6/action-send-mail@v3
+      uses: ./notify-email
       with:
-        server_address: smtp.example.com
-        server_port: 587
-        username: ${{ secrets.EMAIL_USERNAME }}
-        password: ${{ secrets.EMAIL_PASSWORD }}
-        subject: "CI/CD Notification"
-        body: ${{ inputs.message }}
-        to: ${{ secrets.EMAIL_TO }}
-        from: "ci-cd@yourdomain.com"
+        message: ${{ inputs.message }}
 
-    - name: Skipped
-      if: ${{ !contains('slack,discord,email', inputs.method) }}
+    - name: Notify MS Teams
+      if: ${{ inputs.method == 'ms-team' }}
+      uses: ./notify-ms-teams
+      with:
+        message: ${{ inputs.message }}
+
+    - name: PagerDuty Alert
+      if: ${{ inputs.method == 'pagerduty' }}
+      uses: ./notify-pagerduty
+      with:
+        message: ${{ inputs.message }}
+
+    - name: Notification fallback
+      if: ${{ !contains('discord,slack,email,ms-team,pagerduty', inputs.method) }}
       run: echo "No notification method configured for ${{ inputs.method }}."
       shell: bash

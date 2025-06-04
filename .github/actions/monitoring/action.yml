@@ -1,0 +1,34 @@
+name: "Monitoring Delegator"
+description: "Delegates monitoring integration to the chosen provider"
+
+inputs:
+  method:
+    required: true
+    description: string
+  app-path:
+    required: false
+    description: string
+
+runs:
+  using: "composite"
+  steps:
+    - name: DataDog Monitoring
+      if: ${{ inputs.method == 'datadog' }}
+      uses: ./monitoring-datadog
+
+    - name: GitHub Native Status Checks
+      if: ${{ inputs.method == 'github' }}
+      uses: ./monitoring-github
+
+    - name: New Relic Monitoring
+      if: ${{ inputs.method == 'new-relic' }}
+      uses: ./monitoring-newrelic
+
+    - name: Sentry Release Tracking
+      if: ${{ inputs.method == 'sentry' }}
+      uses: ./monitoring-sentry
+
+    - name: Monitoring fallback
+      if: ${{ !contains('datadog,github,new-relic,sentry', inputs.method) }}
+      run: echo "No monitoring method configured for ${{ inputs.method }}."
+      shell: bash

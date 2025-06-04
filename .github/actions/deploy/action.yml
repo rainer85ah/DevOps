@@ -1,5 +1,6 @@
 name: "Deploy Delegator"
-description: "Deploys to Kubernetes, Docker Swarm, AWS EC2, etc."
+description: "Delegates deploy to the correct stack/platform-specific action"
+
 inputs:
   platform:
     required: true
@@ -10,42 +11,61 @@ inputs:
   image-name:
     required: true
     description: string
+  framework:
+    required: true
+    description: string
   tag:
     required: false
-    default: "latest"
     description: string
+    default: "latest"
   environment:
+    description: string
     required: true
+  stack-name:
+    required: false
+    description: string
+  docker-host:
+    required: false
+    description: string
+  docker-username:
+    required: false
+    description: string
+  docker-password:
+    required: false
     description: string
 
 runs:
   using: "composite"
   steps:
-    - name: Deploy to Kubernetes
-      if: ${{ inputs.platform == 'kubernetes' || inputs.platform == 'eks' }}
-      uses: azure/k8s-deploy@v5
+    - name: Deploy Next.js to Kubernetes
+      if: ${{ contains(inputs.framework, 'nextjs') && (inputs.platform == 'kubernetes' || inputs.platform == 'eks') }}
+      uses: ./nextjs-k8s
       with:
-        action: deploy
-        manifests: |
-          ${{ inputs.app-path }}/k8s/deployment.yaml
-        images: |
-          ghcr.io/${{ github.repository_owner }}/${{ inputs.image-name }}:${{ inputs.tag }}
-        namespace: ${{ inputs.environment }}
+        app-path: ${{ inputs.app-path }}
+        image-name: ${{ inputs.image-name }}
+        tag: ${{ inputs.tag }}
+        environment: ${{ inputs.environment }}
+
+    - name: Deploy Nuxt.js to Kubernetes
+      if: ${{ contains(inputs.framework, 'nuxtjs') && (inputs.platform == 'kubernetes' || inputs.platform == 'eks') }}
+      uses: ./nuxtjs-k8s
+      with:
+        app-path: ${{ inputs.app-path }}
+        image-name: ${{ inputs.image-name }}
+        tag: ${{ inputs.tag }}
+        environment: ${{ inputs.environment }}
 
     - name: Deploy to Docker Swarm
       if: ${{ inputs.platform == 'swarm' }}
-      run: |
-        docker stack deploy -c ${{ inputs.app-path }}/docker-stack.yml ${{ inputs.image-name }}
-      shell: bash
+      uses: ./docker-swarm
+      with:
+        app-path: ${{ inputs.app-path }}
+        stack-name: ${{ inputs.stack-name }}
+        docker-host: ${{ inputs.docker-host }}
+        docker-username: ${{ inputs.docker-username }}
+        docker-password: ${{ inputs.docker-password }}
 
-    - name: Deploy to AWS EC2
-      if: ${{ inputs.platform == 'ec2' }}
-      run: |
-        echo "Custom EC2 deployment script here"
-        # scp/docker-compose up/ssh etc.
-      shell: bash
-
-    - name: Skipped
-      if: ${{ !contains('kubernetes,eks,swarm,ec2', inputs.platform) }}
-      run: echo "No deploy routine configured for ${{ inputs.platform }}."
+    - name: Deploy fallback
+      if: ${{ !contains('nextjs,nuxtjs', inputs.framework) || !(inputs.platform == 'kubernetes' || inputs.platform == 'eks') }}
+      run: echo "No deploy routine configured for ${{ inputs.framework }} to ${{ inputs.platform }}."
       shell: bash

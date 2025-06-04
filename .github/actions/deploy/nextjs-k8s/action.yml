@@ -1,0 +1,27 @@
+name: "Deploy Next.js to Kubernetes"
+description: "Deploys Next.js Docker image to Kubernetes"
+
+inputs:
+  app-path:
+    required: true
+    description: string
+  image-name:
+    required: true
+    description: string
+  tag:
+    required: false
+    description: string
+    default: "latest"
+  environment:
+    required: true
+    description: string
+
+runs:
+  using: "composite"
+  steps:
+    - uses: azure/k8s-deploy@v5
+      with:
+        action: deploy
+        manifests: ${{ inputs.app-path }}/k8s/deployment.yaml
+        images: ghcr.io/${{ github.repository_owner }}/${{ inputs.image-name }}:${{ inputs.tag }}
+        namespace: ${{ inputs.environment }}

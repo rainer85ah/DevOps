@@ -1,9 +1,7 @@
-name: nuxtjs-app
-type: frontend
+name: nuxtjs
 framework: nuxtjs
 language: javascript
-ci: true
-cd: true
+lint: true
 test: true
 build: true
 deploy:
@@ -11,3 +9,5 @@ deploy:
   platform: kubernetes
   strategy: rolling
 environment: staging
+notify:
+  method: slack

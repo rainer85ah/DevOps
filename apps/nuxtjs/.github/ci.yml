@@ -1,0 +1,12 @@
+name: Nuxtjs App - CI Pipeline
+
+on:
+  push:
+    paths:
+      - 'apps/nuxtjs/**'
+
+jobs:
+  run-ci:
+    uses: .github/workflows/ci.yml@main
+    with:
+      app-path: apps/nuxtjs

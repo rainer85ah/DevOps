@@ -1,0 +1,22 @@
+name: "Test Nuxt.js"
+description: "Runs tests for a Nuxt.js app"
+
+inputs:
+  app-path:
+    required: true
+    description: string
+
+runs:
+  using: "composite"
+  steps:
+    - run: |
+        cd "${{ inputs.app-path }}"
+        npm ci
+        if [ -f "vitest.config.ts" ] || [ -f "vitest.config.js" ]; then
+          npx vitest run
+        elif [ -f "jest.config.js" ]; then
+          npx jest --ci
+        else
+          npm test -- --ci
+        fi
+      shell: bash

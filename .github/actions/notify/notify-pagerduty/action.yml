@@ -1,35 +1,18 @@
-name: Notify PagerDuty
+name: "Notify PagerDuty"
+description: "Sends alert to PagerDuty"
 
 inputs:
   message:
     required: true
-  title:
-    required: false
-    default: "CI Notification"
-  status:
-    required: false
-    default: "info"
-  environment:
-    required: false
-    default: ""
+    description: string
 
 runs:
   using: "composite"
   steps:
-    - run: |
-        curl -X POST https://events.pagerduty.com/v2/enqueue \
-          -H "Content-Type: application/json" \
-          -d '{
-            "routing_key": "${{ secrets.PAGERDUTY_ROUTING_KEY }}",
-            "event_action": "trigger",
-            "payload": {
-              "summary": "${{ inputs.title }}: ${{ inputs.message }}",
-              "source": "GitHub Actions",
-              "severity": "${{ inputs.status }}",
-              "custom_details": {
-                "Environment": "${{ inputs.environment }}",
-                "Status": "${{ inputs.status }}"
-              }
-            }
-          }'
-      shell: bash
+    - name: PagerDuty Alert
+      uses: pagerduty/pagerduty-action@v1
+      with:
+        routing_key: ${{ secrets.PAGERDUTY_KEY }}
+        summary: ${{ inputs.message }}
+        source: github-actions
+        severity: info
