@@ -1,73 +1,67 @@
-name: Continuous Integration
+name: CI Template with with reusable workflows
 
 on:
   workflow_call:
     inputs:
-      working-directory:
-        required: false
+      app-path:
+        required: true
         type: string
-        default: '.'
-      environment:
-        required: false
-        type: string
-        default: 'dev'
-    outputs:
-      image-tag:
-        value: ${{ jobs.build.outputs.image-tag }}
 
 jobs:
-  detect-language:
+  read-config:
     runs-on: ubuntu-latest
     outputs:
-      language: ${{ steps.detect.outputs.language }}
+      name: ${{ steps.config.outputs.name }}
+      framework: ${{ steps.config.outputs.framework }}
+      language: ${{ steps.config.outputs.language }}
+      lint: ${{ steps.config.outputs.lint }}
+      test: ${{ steps.config.outputs.test }}
+      build: ${{ steps.config.outputs.build }}
     steps:
       - uses: actions/checkout@v4
-      - id: detect
-        run: |
-          cd "${{ inputs.working-directory }}"
-          if [ -f "package.json" ]; then
-            if grep -q '"nuxt"' package.json; then
-              echo "language=nuxt" >> $GITHUB_OUTPUT
-            elif grep -q '"next"' package.json; then
-              echo "language=next" >> $GITHUB_OUTPUT
-            else
-              echo "language=node" >> $GITHUB_OUTPUT
-            fi
-          elif [ -f "main.go" ]; then
-            echo "language=go" >> $GITHUB_OUTPUT
-          elif [ -f "main.py" ] || ls *.py > /dev/null 2>&1; then
-            echo "language=python" >> $GITHUB_OUTPUT
-          elif ls *.java > /dev/null 2>&1; then
-            echo "language=java" >> $GITHUB_OUTPUT
-          elif ls *.rs > /dev/null 2>&1; then
-            echo "language=rust" >> $GITHUB_OUTPUT
-          elif ls *.cpp > /dev/null 2>&1 || ls *.cc > /dev/null 2>&1; then
-            echo "language=cpp" >> $GITHUB_OUTPUT
-          else
-            echo "language=unknown" >> $GITHUB_OUTPUT
-          fi
+      - name: Read app config
+        id: config
+        uses: ./.github/actions/app-config
+        with:
+          app-path: ${{ inputs.app-path }}
 
   lint:
-    needs: detect-language
-    uses: ./.github/actions/lint
-    with:
-      language: ${{ needs.detect-language.outputs.language }}
-      working-directory: ${{ inputs.working-directory }}
+    needs: read-config
+    runs-on: ubuntu-latest
+    if: ${{ needs.read-config.outputs.lint == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/lint
+        with:
+          app-path: ${{ inputs.app-path }}
+          language: ${{ needs.read-config.outputs.language }}
 
   test:
-    needs: detect-language
-    uses: ./.github/actions/test
-    with:
-      language: ${{ needs.detect-language.outputs.language }}
-      working-directory: ${{ inputs.working-directory }}
-      environment: ${{ inputs.environment }}
+    needs: lint
+    runs-on: ubuntu-latest
+    if: ${{ needs.read-config.outputs.test == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/tests
+        with:
+          app-path: ${{ inputs.app-path }}
+          language: ${{ needs.read-config.outputs.language }}
 
   build:
-    needs: detect-language
-    uses: ./.github/workflows/build.yml
-    with:
-      working-directory: ${{ inputs.working-directory }}
-      environment: ${{ inputs.environment }}
+    needs: test
+    runs-on: ubuntu-latest
+    if: ${{ needs.read-config.outputs.build == 'true' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/build-image
+        with:
+          app-path: ${{ inputs.app-path }}
+          image-name: ${{ needs.read-config.outputs.name }}
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ needs.read-config.outputs.name }}-build
+          path: ${{ inputs.app-path }}/.next
 
   artifact:
     needs: build

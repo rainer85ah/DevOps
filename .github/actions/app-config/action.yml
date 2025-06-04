@@ -1,48 +1,60 @@
-name: 'Parse App Config'
-description: 'Reads .app-config.yml and outputs app metadata for use in workflows.'
+name: "Read App Config"
+description: "Reads .app-config.yml and outputs key variables"
 
 inputs:
-  path:
-    description: 'Path to the .app-config.yml file'
+  app-path:
+    description: "Path to the app"
     required: true
-    type: string
-
 outputs:
   name:
-    description: 'App name'
-    value: ${{ steps.read.outputs.name }}
-  type:
-    description: 'App type'
-    value: ${{ steps.read.outputs.type }}
+    description: "App name"
+    value: string
+  framework:
+    description: "Framework"
+    value: string
   language:
-    description: 'Programming language'
-    value: ${{ steps.read.outputs.language }}
+    description: "Language"
+    value: string
+  lint:
+    description: "Enable lint"
+    value: boolean
+  test:
+    description: "Enable tests"
+    value: boolean
+  build:
+    description: "Enable build"
+    value: boolean
   deploy_enabled:
-    description: 'Whether deployment is enabled'
-    value: ${{ steps.read.outputs.deploy_enabled }}
-  test_enabled:
-    description: 'Whether testing is enabled'
-    value: ${{ steps.read.outputs.test_enabled }}
+    description: "Deploy enabled"
+    value: boolean
+  deploy_platform:
+    description: "Deploy platform"
+    value: string
+  deploy_strategy:
+    description: "Deploy strategy"
+    value: string
+  environment:
+    description: "Environment"
+    value: string
+  notify_method:
+    description: "Notification method"
+    value: string
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
-    - name: Read config file
-      id: read
+    - run: |
+        pip install yq --quiet
+        CFG="${{ inputs.app-path }}/.app-config.yml"
+        echo "name=$(yq -r '.name' $CFG)" >> $GITHUB_OUTPUT
+        echo "framework=$(yq -r '.framework' $CFG)" >> $GITHUB_OUTPUT
+        echo "language=$(yq -r '.language' $CFG)" >> $GITHUB_OUTPUT
+        echo "lint=$(yq -r '.lint // .ci // true' $CFG)" >> $GITHUB_OUTPUT
+        echo "test=$(yq -r '.test // true' $CFG)" >> $GITHUB_OUTPUT
+        echo "build=$(yq -r '.build // true' $CFG)" >> $GITHUB_OUTPUT
+        echo "deploy_enabled=$(yq -r '.deploy.enabled // false' $CFG)" >> $GITHUB_OUTPUT
+        echo "deploy_platform=$(yq -r '.deploy.platform // \"\"' $CFG)" >> $GITHUB_OUTPUT
+        echo "deploy_strategy=$(yq -r '.deploy.strategy // \"rolling\"' $CFG)" >> $GITHUB_OUTPUT
+        echo "environment=$(yq -r '.environment // \"staging\"' $CFG)" >> $GITHUB_OUTPUT
+        echo "notify_method=$(yq -r '.notify.method // \"slack\"' $CFG)" >> $GITHUB_OUTPUT
       shell: bash
-      run: |
-        values=$(yq eval '.' "${{ inputs.path }}")
-
-        echo "name=$(echo \"$values\" | yq e '.name' -)" >> $GITHUB_OUTPUT
-        echo "type=$(echo \"$values\" | yq e '.type' -)" >> $GITHUB_OUTPUT
-        echo "language=$(echo \"$values\" | yq e '.language' -)" >> $GITHUB_OUTPUT
-        echo "deploy_enabled=$(echo \"$values\" | yq e '.deploy.enabled' -)" >> $GITHUB_OUTPUT
-        echo "test_enabled=$(echo \"$values\" | yq e '.test.enabled' -)" >> $GITHUB_OUTPUT
-
-    - name: Debug output
-      run: |
-        echo "App Name: ${{ steps.read.outputs.name }}"
-        echo "App Type: ${{ steps.read.outputs.type }}"
-        echo "Language: ${{ steps.read.outputs.language }}"
-        echo "Deploy Enabled: ${{ steps.read.outputs.deploy_enabled }}"
-        echo "Test Enabled: ${{ steps.read.outputs.test_enabled }}"

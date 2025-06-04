@@ -1,0 +1,42 @@
+name: "Lint Delegator"
+description: "Delegates linting based on language"
+
+inputs:
+  app-path:
+    required: true
+    description: string
+  language:
+    required: true
+    description: string
+
+runs:
+  using: "composite"
+  steps:
+    - name: Lint JS/TS
+      if: ${{ inputs.language == 'javascript' || inputs.language == 'typescript' }}
+      run: |
+        cd "${{ inputs.app-path }}"
+        npm ci
+        npx eslint . --ext .js,.ts,.tsx
+      shell: bash
+
+    - name: Lint Python
+      if: ${{ inputs.language == 'python' }}
+      run: |
+        cd "${{ inputs.app-path }}"
+        pip install flake8
+        flake8 .
+      shell: bash
+
+    - name: Lint Go
+      if: ${{ inputs.language == 'go' }}
+      run: |
+        cd "${{ inputs.app-path }}"
+        go fmt ./...
+        go vet ./...
+      shell: bash
+
+    - name: Skipped
+      if: ${{ !contains('javascript,typescript,python,go', inputs.language) }}
+      run: echo "No linter configured for ${{ inputs.language }}."
+      shell: bash

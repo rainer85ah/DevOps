@@ -1,0 +1,14 @@
+name: Universal CI Workflow
+
+on:
+  workflow_call:
+    inputs:
+      app-path:
+        required: true
+        type: string
+
+jobs:
+  run-ci:
+    uses: .github/templates/ci.yml@main
+    with:
+      app-path: ${{ inputs.app-path }}

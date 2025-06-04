@@ -1,0 +1,41 @@
+name: "Test Delegator"
+description: "Delegates testing based on language"
+
+inputs:
+  app-path:
+    required: true
+    description: string
+  language:
+    required: true
+    description: string
+
+runs:
+  using: "composite"
+  steps:
+    - name: Test JS/TS
+      if: ${{ inputs.language == 'javascript' || inputs.language == 'typescript' }}
+      run: |
+        cd "${{ inputs.app-path }}"
+        npm ci
+        npx jest --ci
+      shell: bash
+
+    - name: Test Python
+      if: ${{ inputs.language == 'python' }}
+      run: |
+        cd "${{ inputs.app-path }}"
+        pip install pytest
+        pytest
+      shell: bash
+
+    - name: Test Go
+      if: ${{ inputs.language == 'go' }}
+      run: |
+        cd "${{ inputs.app-path }}"
+        go test ./...
+      shell: bash
+
+    - name: Skipped
+      if: ${{ !contains('javascript,typescript,python,go', inputs.language) }}
+      run: echo "No test runner configured for ${{ inputs.language }}."
+      shell: bash

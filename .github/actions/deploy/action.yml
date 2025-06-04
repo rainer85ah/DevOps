@@ -1,47 +1,51 @@
-name: Continuous Deployment
+name: "Deploy Delegator"
+description: "Deploys to Kubernetes, Docker Swarm, AWS EC2, etc."
+inputs:
+  platform:
+    required: true
+    description: string
+  app-path:
+    required: true
+    description: string
+  image-name:
+    required: true
+    description: string
+  tag:
+    required: false
+    default: "latest"
+    description: string
+  environment:
+    required: true
+    description: string
 
-on:
-  workflow_call:
-    inputs:
-      working-directory:
-        required: false
-        type: string
-        default: '.'
-      environment:
-        required: true
-        type: string
-      artifact-tag:
-        required: true
-        type: string
-      strategy:
-        required: false
-        type: string
-        default: 'rolling'
-      infra:
-        required: false
-        type: string
-        default: 'kubernetes'
+runs:
+  using: "composite"
+  steps:
+    - name: Deploy to Kubernetes
+      if: ${{ inputs.platform == 'kubernetes' || inputs.platform == 'eks' }}
+      uses: azure/k8s-deploy@v5
+      with:
+        action: deploy
+        manifests: |
+          ${{ inputs.app-path }}/k8s/deployment.yaml
+        images: |
+          ghcr.io/${{ github.repository_owner }}/${{ inputs.image-name }}:${{ inputs.tag }}
+        namespace: ${{ inputs.environment }}
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy App
-        uses: ./.github/actions/deploy
-        with:
-          environment: ${{ inputs.environment }}
-          image-tag: ${{ inputs.artifact-tag }}
-          strategy: ${{ inputs.strategy }}
-          platform: ${{ inputs.infra }}
+    - name: Deploy to Docker Swarm
+      if: ${{ inputs.platform == 'swarm' }}
+      run: |
+        docker stack deploy -c ${{ inputs.app-path }}/docker-stack.yml ${{ inputs.image-name }}
+      shell: bash
 
-  notify:
-    runs-on: ubuntu-latest
-    needs: deploy
-    steps:
-      - name: Send Slack Notification
-        uses: ./.github/actions/notify
-        with:
-          title: "Deployment Finished"
-          message: "Deployed image `${{ inputs.artifact-tag }}` to `${{ inputs.environment }}`."
-          status: ${{ needs.deploy.result }}
-          environment: ${{ inputs.environment }}
+    - name: Deploy to AWS EC2
+      if: ${{ inputs.platform == 'ec2' }}
+      run: |
+        echo "Custom EC2 deployment script here"
+        # scp/docker-compose up/ssh etc.
+      shell: bash
+
+    - name: Skipped
+      if: ${{ !contains('kubernetes,eks,swarm,ec2', inputs.platform) }}
+      run: echo "No deploy routine configured for ${{ inputs.platform }}."
+      shell: bash

@@ -1,4 +1,4 @@
-name: CD
+name: Nextjs App - CD Pipeline
 
 on:
   workflow_dispatch:

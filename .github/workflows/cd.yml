@@ -1,0 +1,14 @@
+name: Universal CD
+
+on:
+  workflow_call:
+    inputs:
+      app-path:
+        required: true
+        type: string
+
+jobs:
+  run-cd:
+    uses: .github/templates/cd.yml@main
+    with:
+      app-path: ${{ inputs.app-path }}

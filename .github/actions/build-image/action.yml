@@ -1,44 +1,35 @@
-name: 'Build Docker Image'
-description: 'Reusable build-image action for any app'
+name: "Build and Push Docker Image (Delegator)"
+description: "Builds and pushes Docker image using docker/build-push-action"
 
 inputs:
-  working-directory:
+  app-path:
+    required: true
+    description: string
+  image-name:
+    required: true
+    description: string
+  tag:
     required: false
-    default: '.'
-    description: 'Directory containing the Dockerfile'
-  environment:
-    required: false
-    default: 'dev'
-    description: 'Environment (dev, uat, stag, prod)'
-
-outputs:
-  image-tag:
-    description: 'Docker image tag used'
-    value: ${{ steps.set-tag.outputs.image_tag }}
+    default: "latest"
+    description: string
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-
-    - name: Set Image Tag
-      id: set-tag
-      shell: bash
-      run: |
-        if [ "${{ inputs.environment }}" == "prod" ]; then
-          TAG="v$(date +%Y%m%d%H%M%S)"
-        else
-          TAG="${{ inputs.environment }}-$(git rev-parse --short HEAD)"
-        fi
-        echo "image_tag=$TAG" >> $GITHUB_OUTPUT
-
-    - name: Build Docker Image
-      shell: bash
-      run: |
-        cd "${{ inputs.working-directory }}"
-        docker build \
-          --build-arg APP_ENV=${{ inputs.environment }} \
-          -t myapp:${{ steps.set-tag.outputs.image_tag }} \
-          .
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ${{ inputs.app-path }}
+        push: true
+        tags: ghcr.io/${{ github.repository_owner }}/${{ inputs.image-name }}:${{ inputs.tag }}
 
