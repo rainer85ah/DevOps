@@ -1,0 +1,33 @@
+name: Canary Deployment
+
+on:
+  workflow_call:
+    inputs:
+      service-name:
+        required: true
+        type: string
+      image:
+        required: true
+        type: string
+      tag:
+        required: true
+        type: string
+      canary-weight:
+        required: true
+        type: string
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set canary deployment
+        run: |
+          kubectl set image deployment/${{ inputs.service-name }} ${{ inputs.service-name }}=${{ inputs.image }}:${{ inputs.tag }}
+          # Use your ingress controller or service mesh here to shift traffic
+      - name: Wait and Validate (Canary)
+        run: sleep 60 && curl -f http://your-canary-service/health
+      - name: Promote to full if healthy
+        if: success()
+        run: |
+          # Gradually increase traffic or promote canary to production
+
