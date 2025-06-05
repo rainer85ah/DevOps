@@ -60,6 +60,7 @@ jobs:
           app-path: ${{ inputs.app-path }}
           image-name: ${{ needs.read-config.outputs.name }}
           language: ${{ needs.read-config.outputs.language }}
+
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:

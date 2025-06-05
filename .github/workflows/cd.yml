@@ -1,4 +1,4 @@
-name: Universal CD
+name: Multi-Cloud Multi-Region CD
 
 on:
   workflow_call:
@@ -8,7 +8,28 @@ on:
         type: string
 
 jobs:
-  run-cd:
-    uses: .github/templates/cd.yml@main
+  deploy-matrix:
+    strategy:
+      matrix:
+        include:
+          - platform: eks
+            region: us-east-1
+            cluster_name: "eks-prod"
+          - platform: gke
+            region: us-central1
+            cluster_name: "gke-prod"
+            project_id: "gke-prod"
+          - platform: aks
+            region: eastus
+            cluster_name: "aks-prod"
+            resource_group: "your-aks-resource-group"
+    uses: ./.github/templates/cd.yml
     with:
-      app-path: ${{ inputs.app-path }}
+      app-path: ${{ github.event.inputs.app-path }}
+      platform: ${{ matrix.platform }}
+      region: ${{ matrix.region }}
+      cluster_name: ${{ matrix.cluster_name }}
+      project_id: ${{ matrix.project_id }}
+      resource_group: ${{ matrix.resource_group }}
+
+

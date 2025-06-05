@@ -1,0 +1,35 @@
+name: "Deploy to Azure AKS"
+description: "Deploys Docker image to Azure AKS cluster"
+
+inputs:
+  app-path:
+    required: true
+    description: string
+  image-name:
+    required: true
+    description: string
+  tag:
+    required: false
+    description: string
+    default: "latest"
+  environment:
+    required: true
+    description: string
+
+runs:
+  using: "composite"
+  steps:
+    - uses: azure/login@v2
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Set AKS credentials
+      run: |
+        az aks get-credentials --resource-group ${{ inputs.resource_group }} --name ${{ inputs.cluster_name }}
+      shell: bash
+
+    - name: Deploy manifest to AKS
+      run: |
+        kubectl apply -f ${{ inputs.app-path }}/k8s/deployment.yaml
+        kubectl rollout status deployment -n ${{ inputs.environment }}
+      shell: bash

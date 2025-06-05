@@ -6,6 +6,21 @@ on:
       app-path:
         required: true
         type: string
+      platform:
+        required: true
+        type: string
+      region:
+        required: true
+        type: string
+      cluster_name:
+        required: true
+        type: string
+      project_id:
+        required: false
+        type: string
+      resource_group:
+        required: false
+        type: string
 
 jobs:
   read-config:
@@ -16,7 +31,6 @@ jobs:
       deploy_enabled: ${{ steps.config.outputs.deploy_enabled }}
       deploy_platform: ${{ steps.config.outputs.deploy_platform }}
       environment: ${{ steps.config.outputs.environment }}
-      notify_method: ${{ steps.config.outputs.notify_method }}
     steps:
       - uses: actions/checkout@v4
       - name: Read app config
@@ -25,34 +39,22 @@ jobs:
         with:
           app-path: ${{ inputs.app-path }}
 
-  download-artifact:
-    needs: read-config
-    runs-on: ubuntu-latest
-    if: ${{ needs.read-config.outputs.deploy_enabled == 'true' }}
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: ${{ needs.read-config.outputs.name }}-build
-          path: ${{ inputs.app-path }}
-
-  deploy:
-    needs: [read-config, download-artifact]
-    runs-on: ubuntu-latest
-    if: ${{ needs.read-config.outputs.deploy_enabled == 'true' }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/deploy
-        with:
-          platform: ${{ needs.read-config.outputs.deploy_platform }}
-          app-path: ${{ inputs.app-path }}
-          image-name: ${{ needs.read-config.outputs.name }}
-          language: ${{ needs.read-config.outputs.language }}
-          tag: "latest"
-          environment: ${{ needs.read-config.outputs.environment }}
-          stack-name: ${{ needs.read-config.outputs.name }}
-          docker-host: ${{ secrets.DOCKER_HOST }}
-          docker-username: ${{ secrets.DOCKER_USERNAME }}
-          docker-password: ${{ secrets.DOCKER_PASSWORD }}
+    deploy:
+      needs: read-config
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+        - uses: ./.github/actions/deploy
+          with:
+            platform: ${{ inputs.platform }}
+            app-path: ${{ inputs.app-path }}
+            image-name: ${{ needs.read-config.outputs.name }}
+            tag: "latest"
+            environment: ${{ needs.read-config.outputs.environment }}
+            region: ${{ inputs.region }}
+            cluster_name: ${{ inputs.cluster_name }}
+            project_id: ${{ inputs.project_id }}
+            resource_group: ${{ inputs.resource_group }}
 
   notify:
     needs: deploy

@@ -11,9 +11,6 @@ inputs:
   image-name:
     required: true
     description: string
-  framework:
-    required: true
-    description: string
   tag:
     required: false
     description: string
@@ -27,24 +24,65 @@ inputs:
   docker-host:
     required: false
     description: string
-  docker-username:
+  docker-username:     # Docker Swarm only
     required: false
     description: string
   docker-password:
     required: false
     description: string
+  region:
+    required: true
+  cluster_name:
+    required: true
+  project_id:
+    required: false    # GCP only
+  resource_group:
+    required: false    # Azure only
 
 runs:
   using: "composite"
   steps:
-    - name: Deploy to Kubernetes
-      if: ${{ inputs.platform == 'kubernetes' || inputs.platform == 'eks' }}
-      uses: ./deploy-k8s
+    - name: Deploy to AWS EC2
+      if: ${{ inputs.platform == 'ec2' }}
+      uses: ./deploy-ec2
       with:
         app-path: ${{ inputs.app-path }}
         image-name: ${{ inputs.image-name }}
         tag: ${{ inputs.tag }}
         environment: ${{ inputs.environment }}
+
+    - name: Deploy to AWS EKS
+      if: ${{ inputs.platform == 'eks' }}
+      uses: ./aws-eks
+      with:
+        app-path: ${{ inputs.app-path }}
+        image-name: ${{ inputs.image-name }}
+        tag: ${{ inputs.tag }}
+        environment: ${{ inputs.environment }}
+
+    - name: Deploy to GCP GKE
+      if: ${{ inputs.platform == 'gke' }}
+      uses: ./deploy-gke
+      with:
+        app-path: ${{ inputs.app-path }}
+        image-name: ${{ inputs.image-name }}
+        tag: ${{ inputs.tag }}
+        environment: ${{ inputs.environment }}
+        region: ${{ inputs.region }}
+        cluster_name: ${{ inputs.cluster_name }}
+        project_id: ${{ inputs.project_id }}
+
+    - name: Deploy to Azure AKS
+      if: ${{ inputs.platform == 'aks' }}
+      uses: ./deploy-aks
+      with:
+        app-path: ${{ inputs.app-path }}
+        image-name: ${{ inputs.image-name }}
+        tag: ${{ inputs.tag }}
+        environment: ${{ inputs.environment }}
+        region: ${{ inputs.region }}
+        cluster_name: ${{ inputs.cluster_name }}
+        resource_group: ${{ inputs.resource_group }}
 
     - name: Deploy to Docker Swarm
       if: ${{ inputs.platform == 'swarm' }}
@@ -56,16 +94,8 @@ runs:
         docker-username: ${{ inputs.docker-username }}
         docker-password: ${{ inputs.docker-password }}
 
-    - name: Deploy to AWS EC2
-      if: ${{ inputs.platform == 'ec2' }}
-      uses: ./deploy-ec2
-      with:
-        app-path: ${{ inputs.app-path }}
-        image-name: ${{ inputs.image-name }}
-        tag: ${{ inputs.tag }}
-        environment: ${{ inputs.environment }}
-
     - name: Deploy fallback
-      if: ${{ !contains('kubernetes,eks,swarm,ec2', inputs.platform) }}
+      if: ${{ !contains('eks,gke,aks,swarm,ec2', inputs.platform) }}
       run: echo "No deploy routine configured for ${{ inputs.platform }}."
       shell: bash
+

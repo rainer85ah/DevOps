@@ -1,0 +1,41 @@
+name: "Deploy to AWS EKS"
+description: "Deploys Docker image to AWS EKS"
+
+inputs:
+  app-path:
+    required: true
+    description: string
+  image-name:
+    required: true
+    description: string
+  tag:
+    required: false
+    description: string
+    default: "latest"
+  environment:
+    required: true
+    description: string
+  cluster_name:
+    required: true
+    description: string
+
+runs:
+  using: "composite"
+  steps:
+    - uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ inputs.region }}
+
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig --region ${{ inputs.region }} --name ${{ inputs.cluster_name }}
+      shell: bash
+
+    - name: Deploy manifest to EKS
+      run: |
+        kubectl apply -f ${{ inputs.app-path }}/k8s/deployment.yaml
+        kubectl rollout status deployment -n ${{ inputs.environment }}
+      shell: bash
+

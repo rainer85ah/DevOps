@@ -1,0 +1,45 @@
+name: "Deploy to GCP GKE"
+description: "Deploys Docker image to GCP GKE cluster"
+
+inputs:
+  app-path:
+    required: true
+    description: string
+  image-name:
+    required: true
+    description: string
+  tag:
+    required: false
+    description: string
+    default: "latest"
+  environment:
+    required: true
+    description: string
+  region:
+    required: true
+    description: string
+  cluster_name:
+    required: true
+    description: string
+  project_id:
+    required: true
+    description: string
+
+runs:
+  using: "composite"
+  steps:
+    - uses: google-github-actions/auth@v2
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    - uses: google-github-actions/get-gke-credentials@v2
+      with:
+        cluster_name: ${{ inputs.cluster_name }}
+        location: ${{ inputs.region }}
+        project_id: ${{ inputs.project_id }}
+
+    - name: Deploy manifest to GKE
+      run: |
+        kubectl apply -f ${{ inputs.app-path }}/k8s/deployment.yaml
+        kubectl rollout status deployment -n ${{ inputs.environment }}
+      shell: bash
