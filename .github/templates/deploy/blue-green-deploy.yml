@@ -31,4 +31,3 @@ jobs:
       - name: Switch traffic to Green
         run: |
           kubectl patch service/${{ inputs.service-name }} -p '{"spec":{"selector":{"app":"${{ inputs.green-svc }}"}}}'
-

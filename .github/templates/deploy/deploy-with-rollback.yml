@@ -31,7 +31,6 @@ jobs:
           sleep 10
           curl -f ${{ inputs.healthcheck-url }}
       - name: Rollback if health check fails
-        if: failure() && steps.health.outcome == 'failure'
+        if: ${{ failure() }}
         run: |
           kubectl rollout undo deployment/${{ inputs.service-name }}
-

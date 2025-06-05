@@ -23,4 +23,3 @@ jobs:
       - name: Mirror traffic (service mesh control here)
         run: |
           echo "Set up shadow traffic mirroring via service mesh (e.g. Istio, Linkerd)"
-
