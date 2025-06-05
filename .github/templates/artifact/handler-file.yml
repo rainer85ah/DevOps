@@ -1,0 +1,33 @@
+name: Artifacts Handler (File)
+
+on:
+  workflow_call:
+    inputs:
+      operation:
+        required: true
+        type: string  # upload or download
+      artifact-name:
+        required: true
+        type: string
+      file-path:
+        required: true
+        type: string
+
+jobs:
+  artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Upload file artifact
+        if: ${{ inputs.operation == 'upload' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: ${{ inputs.file-path }}
+
+      - name: Download file artifact
+        if: ${{ inputs.operation == 'download' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name }}

@@ -1,0 +1,10 @@
+version: "3.8"
+services:
+  java-app:
+    image: ghcr.io/your-repo/java:latest
+    ports:
+      - "8081:8080"
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure

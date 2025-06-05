@@ -1,0 +1,10 @@
+version: "3.8"
+services:
+  python-app:
+    image: ghcr.io/your-repo/python:latest
+    ports:
+      - "8000:8000"
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure

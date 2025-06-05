@@ -1,0 +1,10 @@
+version: "3.8"
+services:
+  rust-app:
+    image: ghcr.io/your-repo/rust:latest
+    ports:
+      - "8082:8080"
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure

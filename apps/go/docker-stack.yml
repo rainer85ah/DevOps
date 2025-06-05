@@ -1,0 +1,9 @@
+services:
+  go-app:
+    image: ghcr.io/your-repo/go-app:latest
+    ports:
+      - "8080:8080"
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
